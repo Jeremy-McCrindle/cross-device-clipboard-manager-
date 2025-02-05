@@ -1,4 +1,4 @@
-name: Deploy Firebase Functions
+name: Deploy Firebase Services (Hosting, Functions, Firestore, Auth)
 
 on:
   push:
@@ -26,11 +26,47 @@ jobs:
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
-      - name: Install dependencies
+      # --- Install Dependencies for Functions ---
+      - name: Install dependencies (Functions)
         run: npm install
         working-directory: ./functions
 
-      - name: Deploy to Firebase
-        run: firebase deploy --only functions
+      # --- Install Dependencies for Web App ---
+      - name: Install dependencies (Web App)
+        run: npm install
+        working-directory: ./web-app
+
+      # --- Build the Web App ---
+      - name: Build the Web App
+        run: npm run build
+        working-directory: ./web-app
+
+      # --- Deploy Firestore Security Rules ---
+      - name: Deploy Firestore Rules
+        run: firebase deploy --only firestore
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+      # --- Deploy Authentication Rules ---
+      - name: Deploy Firebase Auth Config
+        run: firebase deploy --only auth
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+      # --- Deploy Cloud Functions & Hosting ---
+      - name: Deploy Firebase Functions & Hosting
+        run: firebase deploy --only functions,hosting
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+      # --- Deploy Firestore Indexes (If Any) ---
+      - name: Deploy Firestore Indexes
+        run: firebase deploy --only firestore:indexes
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+      # --- Deploy All Emulated Services (Optional) ---
+      - name: Deploy Firebase Emulators Config
+        run: firebase deploy --only emulators
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
